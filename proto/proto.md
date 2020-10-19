@@ -115,6 +115,13 @@ The specs for the LEDs from [cree.com](https://www.cree.com/led-components/media
 
 Thinking of Kit 51, CCT 6200K
 
+### Main Unit
+
+Contemplating between various devices:
+
+- Arduino
+- ESP32
+
 ## Pod Data wire
 
 The data wire will be used to instruct the pod, something like 8 bits instruction.
