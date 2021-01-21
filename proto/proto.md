@@ -4,28 +4,124 @@ Info for the first prototype.
 
 ## Intro
 
-4 auxiliary lights: 2 to spot things way in front at a distance (on highways for example), and 2 to spot things on the side of the road.
+Newer motorcycles have better lights than before, but it can't compete against dedicated external auxiliary lights.  The problem is cost, a full set of auxiliary LED lights, with some "automation" and convention can be up to 1500$ (Canadian dollar).
 
-- Set 1 (left/right) for long distance (spot), mounted higher on the bike
-- Set 2 (left/right) for sides (flood), mounted lower.
+The plan is to build them myself.  4 auxiliary lights: 2 to spot things way in front at a distance (on highways for example), and 2 to spot things on the side of the road.
+
+- Set 1 (left/right) for long distance (spot), mounted higher on the bike (Version 1.0)
+- Set 2 (left/right) for sides (flood), mounted lower. (Version 2.0)
 
 These lights will be controllable from a general switch on the handlebar, automatically from the bike's computer and from a phone.
 
 - The handlebar switch will have an off/auto/on button, and a +/- intensity button.
 - The bikes computer and sensors will also drive the lights
-- An app on a mobile phone will do the same as above, but more finess and control.
+- An app on a mobile phone will do the same as above, but more finesse and control.
+
+## Versions
+
+I'd love to build everything one time and move on, but there's nothing better than:
+
+> Start small, make it work, then make it work better.
+
+### Version 1.0
+
+2 auxiliary lights, mounted high on the crash bars.  Control would be done via switch on the handlebar.
+
+### Version 1.1
+
+Add integration with the bike's computer (ODB2/CanBus):
+
+- turn on/dim/off with daylight sensor
+- turn on/dim when bike is set to high/low beam
+- turn on/dim side lights when turn signals on at low speed
+
+### Version 2.0
+
+Add 2 auxiliary lights for the fog and for side illumination (tight curves).
+
+### Future versions
+
+- Android phone app
+  - control
+  - settings (dim intensity, etc.)
+  - firmware update ?
+  - logging
+    - fuel consumption (geek) <-> gps <-> speed
+  - audio feedback
+    - "gear 5"
+  - voice control
+    - "Aziz, lights"
+
+## The plan
+
+![Proto 1](images/Proto1.png)
+
+One main computer, connected to a switch, connected to 2 pods (Left/Right).
 
 ### Pods
 
-Each housing is a named a pod.  Each pod contains the LEDs and a controller.  The controller is responsible of handling which light is turned on, off or at what intensity.
+Each housing is a named a pod.  Each pod contains the LEDs, lenses and a controller.  The controller is responsible of handling which LED is turned on, off or at what intensity.
+
+The [ESP32](https://www.espressif.com/en/products/socs/esp32) is currently the chosen computer for the pods.
+
+The LEDs: CREE 
 
 ### Main unit
 
-The Main unit controller is the brain that instructs each pod individually, based on various input and settings.
+The Main unit controller is the brain that instructs each pod individually, based on various input and settings.  The requirements for the computer [IoT](https://en.wikipedia.org/wiki/Internet_of_things):
 
-### Features
+- cheap
+- easy to program
+  - C, Python
+  - modern IDE (Visual Studio, Visual Studio Code, Arduino IDE)
+  - USB interface with PC
+- Bluetooth
+- Interface capable to connect to ODB-II or CAN Bus, via Shield
+- Breadboard friendly
 
-In high beam mode - the bike is alone in the dark, and idea is prevent accidents as much as possible, obstacles far up front and animals on the side.
+The [ESP32](https://www.espressif.com/en/products/socs/esp32) is currently the chosen computer for the main unit.
+
+### Communication between computers
+
+The Main unit will send an instruction to the pod computers, and the pod computer will do the turning on/off and dimming of individual LEDs.  I'm still debating on the transportation medium:
+
+- A physical cable
+- Bluetooth
+- other: RF, Wifi, etc.
+
+The advantage of a physical cable is the reliability.  The downside is "more cables": pain of routing, visually unpleasant, source of failure (corrosion, water, accident).
+
+The advantage of Bluetooth is less cables.  The downside of Bluetooth is the pairing nightmare, speed, and connectivity glitches.
+
+Since the Pods will require 12V anyway, maybe running a 3-pair cable directly from the Main unit is an attractive alternative.
+
+1. Gnd
+1. 12V
+1. Data
+
+### Switch
+
+2 buttons for now.
+
+- Plus (+) increase
+- Minus (-) decrease
+
+Off <-> Daytime <-> Low beam <-> High beam <-> Rally
+
+#### Option: Whoops mode
+
+Fast click any (+) or (-) would dim down the lights:
+
+| Off |     | Daytime |     | Low beam |     | High Beam |     | Rally |
+| --- | --- | ---     | --- | ---      | --- | ---       | --- | ---   |
+|     |     |         |     | Low beam |  <- |           | <-  | Rally |
+|     |     |         |     | Low beam |  <- | High Beam | |
+|     |     | Daytime | <-  | Low beam | | |
+| Off | <-  | Daytime |  
+
+## Features
+
+In high beam mode - the bike is alone in the dark, the idea is to prevent accidents as much as possible, obstacles far up front and animals on the side.
 
 ![High beam](images/spot%20versus%20flood.png)
 
@@ -35,7 +131,7 @@ In low beam, we don't want to affect others in front of us.
 
 Question: In low beam, what do we do with the top right ?  We want some light to detect people walking for example.
 
-### Research
+## Outstanding questions
 
 Research: in low beam, how to balance the viewing experience without affecting others.
 
@@ -45,11 +141,11 @@ Research: high speed versus low speed.  Should the lighting pattern vary with sp
 
 Research: Windy roads.  In curves, should the inclination of the bike affect the lighting to reduce the inner-circle blind spot ?
 
-## Build
+### Build
 
 Each pod will controlled individually, for features like turning, lane changing, etc.
 
-Each pod will have their own set of LEDs, specs and power requirements.  Bikes typically run with 12VTo minimize the risk of interferences between the main unit and the pod, and for ease of programming, each pod will be connected to the main unit via a 3 wire cable: a 12V power, Gnd, Data.
+Each pod will have their own set of LEDs, specs and power requirements.  Bikes typically run with 12VTo minimize the risk of interferences between the main unit and the pod, and for ease of programming, each pod could be connected to the main unit via a 3 wire cable: a 12V power, Gnd, Data, or go for Bluetooth?
 
 ### Pod Housing
 
@@ -61,7 +157,9 @@ Question: What's the relationship between the LED orientation with the lens ?  S
 
 ### Pod Lens
 
-Polycarbonate seems the obvious choice for a lens.  The lens can be tailored for focused (spot for long distance) versus omni-direction (flooding).
+This is the "Pod" protective lens, not the individual LED lenses.
+
+Polycarbonate seems the obvious choice for a lens.
 
 Question: Can a 3D printer print polycarbonate lenses or is it better to buy directly from a manufacturer ?
 
@@ -72,7 +170,7 @@ Thinking of 3 LED layout patterns: Square, rectangle or round.
 Will depend on the size of LEDs and throughput (Lumen), the lens capabilities versus LED orientation requirements.
 
 - Square pattern: 1, 4, 9, 16  
-- Rectangle patterns: 2, 6, 15
+- Rectangle patterns: 2, 6, 7, 15
 - Round: 1, 5, 12
 
 ![Patterns](images/Led%20layout%20patterns.png)
@@ -101,8 +199,6 @@ Question: What 200% intensity mean ?
 
 At full intensity, what is the LED's life ?  What affects the LED's light? Does the LED loose lumens gradually over time ?  Might want to think about having a round-robin of active LEDs
 
-## Hardware
-
 ### Cree XLamp XP-L LEDs
 
 The specs for the LEDs from [cree.com](https://www.cree.com/led-components/media/documents/ds-XPL.pdf).
@@ -115,36 +211,19 @@ The specs for the LEDs from [cree.com](https://www.cree.com/led-components/media
 
 Thinking of Kit 51, CCT 6200K
 
+### Lenses
+
+Khatod
+
+A mix of Ultra Narrow, Narrow, Wide and flood.
+
+Question: How to fine tune/adjust lens orientation ?  Is there such a thing as a "lens mount" ?
+
 ### Main Unit
 
 Contemplating between various devices:
 
 - Arduino
-- ESP32
-
-## Pod Data wire
-
-The data wire will be used to instruct the pod, something like 8 bits instruction.
-
-- Intensity (bits 0..2)
-  - 0 - 000: off
-  - 1 - 001: 15%
-  - 2 - 010: 30%
-  - 3 - 011: 45%
-  - 4 - 100: 60%
-  - 5 - 101: 75%
-  - 6 - 110: 90%
-  - 7 - 111: 100%
-- Flash (bit 3..4)
-  - 0 - 00: off
-  - 1 - 01: slow (flasher speed)
-  - 2 - 10: medium (warning, get attention)
-  - 3 - 11: high (scare)
-- Side (bits 5..6)
-  - 0 - 00: off
-  - 1 - 01: 33%
-  - 2 - 10: 66%
-  - 3 - 11: 100%
-- Side flash (bit 7)
-  - 0 - 0: off
-  - 1 - 1: slow (flasher speed)
+- ESP32 (preferred option)
+  - [ESP32-WROOM](https://www.espressif.com/en/products/modules/esp32)
+  - CAN bus connectivity TI [SN65HVD230DR](http://www.ti.com/general/docs/lit/getliterature.tsp?baseLiteratureNumber=SLOS346&fileType=pdf) transceiver chip ?
