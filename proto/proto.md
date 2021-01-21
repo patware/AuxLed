@@ -54,7 +54,7 @@ Add 2 auxiliary lights for the fog and for side illumination (tight curves).
 
 ## The plan
 
-![Proto 1](images/Proto1.png)
+![Proto 1](./images/proto1.png)
 
 One main computer, connected to a switch, connected to 2 pods (Left/Right).
 
